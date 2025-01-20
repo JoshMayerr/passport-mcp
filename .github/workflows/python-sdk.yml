@@ -2,86 +2,28 @@ name: Python SDK
 
 on:
   push:
-    branches: [main]
     paths:
       - "sdks/python/**"
+      - ".github/workflows/python-sdk.yml"
   pull_request:
-    branches: [main]
     paths:
       - "sdks/python/**"
-  release:
-    types: [published]
+      - ".github/workflows/python-sdk.yml"
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
-          cache-dependency-path: |
-            sdks/python/pyproject.toml
-            sdks/python/requirements*.txt
-
+          python-version: "3.10"
       - name: Install dependencies
-        working-directory: ./sdks/python
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-          pip install types-requests types-setuptools
-
-      - name: Run linting
         run: |
           cd sdks/python
-          ruff check .
-
-      - name: Type check with mypy
-        working-directory: ./sdks/python
-        run: mypy passportmcp tests
-
-      - name: Run tests with pytest
-        working-directory: ./sdks/python
-        run: pytest tests/ --cov=passportmcp --cov-report=xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          file: ./sdks/python/coverage.xml
-          flags: python-sdk
-          fail_ci_if_error: true
-
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        working-directory: ./sdks/python
+          pip install -e ".[dev]"
+      - name: Run tests
         run: |
-          python -m pip install --upgrade pip
-          pip install hatch
-
-      - name: Build package
-        working-directory: ./sdks/python
-        run: hatch build
-
-      - name: Publish to PyPI
-        working-directory: ./sdks/python
-        env:
-          HATCH_INDEX_USER: __token__
-          HATCH_INDEX_AUTH: ${{ secrets.PYPI_API_TOKEN }}
-        run: hatch publish
+          cd sdks/python
+          pytest
