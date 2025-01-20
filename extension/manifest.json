@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BrowserPassport",
+  "name": "PassportMCP",
   "version": "0.0.1",
-  "description": "Use browser authentication in your applications",
+  "description": "Build MCP servers for any website with automatic browser auth syncing",
   "permissions": ["nativeMessaging", "webRequest", "cookies"],
   "host_permissions": ["<all_urls>"],
   "background": {

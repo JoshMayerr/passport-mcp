@@ -1,74 +1,84 @@
-# BrowserPassport
+# PassportMCP
 
-BrowserPassport lets you make authenticated requests to websites from your local applications by capturing and reusing your browser's authentication state.
+PassportMCP is a powerful tool that lets developers build MCP (Multi-Client Protocol) servers for any website by automatically syncing browser authentication to outbound requests. It's built on top of BrowserPassport, which handles the low-level browser authentication state capture and reuse.
 
 ## How It Works
 
 1. Install the Chrome extension
 2. Log into your website normally in Chrome
 3. The extension captures authentication headers and cookies
-4. Use our SDK to make authenticated requests from your code
+4. Use PassportMCP to build authenticated MCP tools
 
 ```python
-from browserpassport import BrowserPassport
+from passportmcp import PassportMCP
 
-client = BrowserPassport()
-response = client.get('https://example.com/api/data')  # Automatically includes auth!
+# Create an MCP instance for LinkedIn
+mcp = PassportMCP("linkedin", "linkedin.com")
+
+# Define MCP tools using the decorator
+@mcp.tool()
+async def search_linkedin(query: str):
+    response = mcp.browser.get(
+        "https://www.linkedin.com/voyager/api/search/blended",
+        params={"keywords": query}
+    )
+    return response.json()
 ```
 
 ## Features
 
-- 🔒 Capture authentication state from Chrome
-- 🚀 Use in any local application
-- 🛠️ Simple SDK interface
+- 🔒 Automatic browser auth syncing
+- 🚀 Simple MCP tool creation
+- 🛠️ Works with any website
 - 🔄 Always uses latest auth state
-- 📋 Works with cookies and headers
+- 📋 Handles cookies and headers
 - ⚡ Zero configuration needed
 
 ## Installation
 
 1. **Install Chrome Extension**:
 
-   - Visit [Chrome Web Store](#) and install BrowserPassport
+   - Visit [Chrome Web Store](#) and install PassportMCP extension
 
 2. **Install Python SDK**:
    ```bash
-   pip install browserpassport
-   browserpassport setup  # Sets up native messaging
+   pip install passportmcp
+   passportmcp setup  # Sets up native messaging
    ```
 
 ## Quick Start
 
 1. **Enable Monitoring**:
 
-   - Click the BrowserPassport icon in Chrome
+   - Click the PassportMCP icon in Chrome
    - Toggle "Monitor Requests" on
-   - Visit and log into your website
+   - Visit and log into your target website
 
-2. **Use in Code**:
+2. **Create MCP Tools**:
 
    ```python
-   from browserpassport import BrowserPassport
+   from passportmcp import PassportMCP
 
-   # Create client
-   client = BrowserPassport()
+   # Create MCP instance
+   mcp = PassportMCP("linkedin", "linkedin.com")
 
-   # Make authenticated requests
-   response = client.get('https://example.com/api/data')
-   print(response.json())
-
-   # POST requests work too
-   response = client.post('https://example.com/api/update', json={'key': 'value'})
+   # Define tools
+   @mcp.tool()
+   async def get_profile(profile_id: str):
+       response = mcp.browser.get(
+           f"https://www.linkedin.com/voyager/api/profiles/{profile_id}"
+       )
+       return response.json()
    ```
 
-## How It Works
+## Architecture
 
-BrowserPassport has three main components:
+PassportMCP consists of three main components:
 
 1. **Chrome Extension**:
 
    - Monitors web requests
-   - Captures authentication headers and cookies
+   - Captures authentication state
    - Sends to native host
 
 2. **Native Host**:
@@ -78,17 +88,16 @@ BrowserPassport has three main components:
    - Provides data to SDK
 
 3. **SDK**:
-   - Reads stored authentication
-   - Adds to outgoing requests
-   - Handles errors gracefully
+   - PassportMCP: High-level MCP tool creation
+   - BrowserPassport: Low-level auth handling
 
 ## Development Setup
 
 1. **Clone Repository**:
 
    ```bash
-   git clone https://github.com/your-org/browserpassport.git
-   cd browserpassport
+   git clone https://github.com/your-org/passport-mcp.git
+   cd passport-mcp
    ```
 
 2. **Extension Development**:
@@ -110,7 +119,7 @@ BrowserPassport has three main components:
 ## Project Structure
 
 ```
-browserpassport/
+passport-mcp/
 ├── extension/            # Chrome extension
 ├── sdks/
 │   ├── python/          # Python SDK
@@ -119,19 +128,9 @@ browserpassport/
     └── native-host/     # Native messaging host
 ```
 
-## Authentication Support
-
-BrowserPassport captures all forms of browser authentication:
-
-- Cookies (session, persistent)
-- Authorization headers
-- Custom auth headers
-- API keys in headers
-- CSRF tokens
-
 ## Security
 
-BrowserPassport prioritizes security:
+PassportMCP prioritizes security:
 
 - Only captures auth-related data
 - Stores securely on local machine
@@ -145,7 +144,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 1. **Fork and Clone**:
 
    ```bash
-   git clone https://github.com/your-username/browserpassport.git
+   git clone https://github.com/your-username/passport-mcp.git
    ```
 
 2. **Make Changes**:
@@ -180,7 +179,7 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## Support
 
-- 📚 [Documentation](https://docs.browserpassport.dev)
-- 💬 [Discord Community](https://discord.gg/browserpassport)
-- 🐛 [Issue Tracker](https://github.com/your-org/browserpassport/issues)
-- 📧 Email: support@browserpassport.dev
+- 📚 [Documentation](https://docs.passportmcp.dev)
+- 💬 [Discord Community](https://discord.gg/passportmcp)
+- 🐛 [Issue Tracker](https://github.com/your-org/passport-mcp/issues)
+- 📧 Email: support@passportmcp.dev
