@@ -1,6 +1,6 @@
 # PassportMCP
 
-PassportMCP lets you build MCP servers for any given website with automatic browser auth syncing. It wraps FastMCP and automatically adds necessary auth headers and cookies from the browser to outbound requests. Bulid any MCP you want without worrying about auth! As long as you log in through the browser, it's fair game. Often easier than paying for developer APIs (ex: twitter/X), avoiding rate limits, or great for sites that don't have one.
+PassportMCP lets you build MCP servers for any given website with automatic browser auth syncing. It wraps FastMCP and automatically adds necessary auth headers and cookies from the browser to outbound requests. As long as you log in through the browser, it's fair game. Often easier than paying for developer APIs (ex: twitter/X), avoiding rate limits, or great for sites that don't have one.
 
 ## How It Works
 
@@ -13,17 +13,27 @@ PassportMCP lets you build MCP servers for any given website with automatic brow
 from passportmcp import PassportMCP
 
 # Create an MCP instance for LinkedIn
+# PassportMCP(name, domain)
 mcp = PassportMCP("linkedin", "linkedin.com")
 
 # Define MCP tools using the decorator
 @mcp.tool()
 async def search_linkedin(query: str):
     # make a get request to the real linkedin api, not the developer api
-    response = mcp.browser.get(
-        "https://www.linkedin.com/voyager/api/search/blended",
-        params={"keywords": query}
-    )
-    return response.json()
+    try:
+        response = client.get(
+            "https://www.linkedin.com/voyager/api/graphql/api/voyager/api/graphql?includeWebMetadata=true&variables=()&queryId=voyagerDashMySettings.7ea6de345b41dfb57b660a9a4bebe1b8"
+        )
+
+        if response.status_code == 200:
+            print("successful request!")
+            data = response.json()
+            print(data)
+        else:
+            print(f"Status code: {response.status_code}")
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 ```
 
 ## Features
