@@ -191,7 +191,7 @@ def main() -> None:
                 log("Input stream closed, exiting")
                 break
 
-            log(f'Received message type: {message.get("type", "unknown")}')
+            log(f"Received message type: {message.get('type', 'unknown')}")
 
             if message.get("type") == "request_data":
                 response = handle_request_data(message["data"])

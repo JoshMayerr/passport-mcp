@@ -37,10 +37,6 @@ jobs:
           pip install -e ".[dev]"
           pip install types-requests types-setuptools
 
-      - name: Run code formatting
-        run: |
-          cd sdks/python
-          ruff format .
       - name: Run linting
         run: |
           cd sdks/python

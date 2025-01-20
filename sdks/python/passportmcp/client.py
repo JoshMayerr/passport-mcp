@@ -67,8 +67,7 @@ class BrowserPassport:
             verify: Whether to verify SSL certificates.
             logger: Optional logger instance.
         """
-        self.storage_path = os.path.expanduser(
-            storage_path or self.DEFAULT_STORAGE_PATH)
+        self.storage_path = os.path.expanduser(storage_path or self.DEFAULT_STORAGE_PATH)
         self.logger = logger or logging.getLogger(__name__)
         self.client = httpx.Client(timeout=timeout, verify=verify)
 
@@ -83,8 +82,7 @@ class BrowserPassport:
         try:
             storage_path = Path(self.storage_path)
             if not storage_path.exists():
-                self.logger.warning(
-                    "Storage file not found at %s", self.storage_path)
+                self.logger.warning("Storage file not found at %s", self.storage_path)
                 return False
 
             with open(storage_path) as f:
@@ -119,6 +117,11 @@ class BrowserPassport:
             self.logger.error("Error loading domain data: %s", str(e))
             return None
 
+    def _get_storage(self) -> Dict[str, Any]:
+        """Get the storage data."""
+        with open(self.storage_path) as f:
+            return json.load(f)
+
     def _prepare_request(
         self,
         method: str,
@@ -140,8 +143,7 @@ class BrowserPassport:
             }
 
             # Merge cookies, prioritizing user-provided ones
-            request_kwargs["cookies"] = {
-                **domain_data.cookies, **(cookies or {})}
+            request_kwargs["cookies"] = {**domain_data.cookies, **(cookies or {})}
 
         return request_kwargs
 
@@ -201,7 +203,7 @@ class BrowserPassport:
                 return None
             return {
                 "count": len(storage[domain]),
-                "last_updated": max(x.timestamp for x in storage[domain])
+                "last_updated": max(x.timestamp for x in storage[domain]),
             }
         except Exception as e:
             raise StorageError(f"Failed to get domain stats: {str(e)}") from e

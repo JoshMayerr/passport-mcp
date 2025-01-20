@@ -1,8 +1,5 @@
 import json
-
 import pytest
-
-from passportmcp import PassportMCPClient
 
 
 @pytest.fixture
@@ -17,15 +14,6 @@ def mock_storage(tmp_path):
     }
     storage_path.write_text(json.dumps(storage_data))
     return storage_path
-
-
-def test_client_initialization():
-    client = PassportMCPClient("test-api-key")
-    assert client.api_key == "test-api-key"
-    assert client.base_url == "https://api.passportmcp.com"
-
-    client = PassportMCPClient("test-api-key", "https://custom-url.com/")
-    assert client.base_url == "https://custom-url.com"
 
 
 # def test_client_basic_flow():
