@@ -1,60 +1,76 @@
-I'll outline the steps for testing, building, and publishing BrowserPassport to PyPI.
+# Passport MCP Python SDK
 
-1. First, let's add a basic test structure to our Python SDK:
+A Python SDK for interacting with the Passport MCP browser extension, enabling browser automation and control.
 
-2. Update `pyproject.toml` to include test dependencies:
-
-3. Development and Testing Steps:
+## Installation
 
 ```bash
-# From sdks/python directory
+pip install ppmcp
+ppmcp setup # get local message host
+```
 
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+## Prerequisites
 
-# Install package in editable mode with test dependencies
-pip install -e ".[test]"
+- Python 3.10 or higher
+- Passport MCP browser extension
 
-# Run tests
+## Examples
+
+Check out the `examples` directory for more detailed examples:
+
+## Development Setup
+
+1. Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+2. Install development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+3. Run tests:
+
+```bash
 pytest tests/
 ```
 
-4. Build and Publish Steps:
+## Building and Publishing
+
+1. Update version in `pyproject.toml`
+
+2. Build the package:
 
 ```bash
-# Build the package
 python -m build
+```
 
-# This will create:
-# - dist/browserpassport-0.1.0.tar.gz (source distribution)
-# - dist/browserpassport-0.1.0-py3-none-any.whl (wheel)
+3. Install build dependencies:
 
-# Test the build (optional)
-pip install dist/browserpassport-0.1.0-py3-none-any.whl
+```bash
+pip install build twine
+```
 
-# Publish to TestPyPI first (recommended)
-python -m twine upload --repository testpypi dist/*
+4. Test the build:
 
-# Once tested, publish to PyPI
+```bash
+pip install dist/ppmcp-0.1.0-py3-none-any.whl
+```
+
+5. Publish to PyPI:
+
+```bash
 python -m twine upload dist/*
 ```
 
-5. Required PyPI Setup:
+## License
 
-- Create accounts on PyPI (https://pypi.org) and TestPyPI (https://test.pypi.org)
-- Create API tokens for authentication
-- Create `~/.pypirc` file:
+MIT License
 
-6. GitHub Actions (Optional):
-   We can also set up automated testing and publishing. Would you like me to provide a GitHub Actions workflow for this?
+## Contributing
 
-Key points to remember:
-
-1. Always test thoroughly before publishing
-2. Use TestPyPI first to verify the package
-3. Make sure the version number is updated in `pyproject.toml` before building
-4. Keep PyPI tokens secure and never commit them to the repository
-5. The build process will include the native host files from the shared directory
-
-Let me know if you'd like me to elaborate on any of these steps or provide additional configurations!
+Contributions are welcome! Please feel free to submit a Pull Request.
