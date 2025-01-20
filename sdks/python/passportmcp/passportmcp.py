@@ -1,7 +1,7 @@
-from typing import Optional, Callable, Any
-from .client import BrowserPassport
-import inspect
 from functools import wraps
+from typing import Any, Callable, Optional
+
+from .client import BrowserPassport
 
 
 class PassportMCP:

@@ -1,11 +1,12 @@
-from typing import Dict, Any, Optional, Union, List
-from urllib.parse import urlparse
-import os
 import json
-import httpx
-from pathlib import Path
 import logging
+import os
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
+
+import httpx
 
 
 @dataclass
@@ -66,7 +67,8 @@ class BrowserPassport:
             verify: Whether to verify SSL certificates.
             logger: Optional logger instance.
         """
-        self.storage_path = os.path.expanduser(storage_path or self.DEFAULT_STORAGE_PATH)
+        self.storage_path = os.path.expanduser(
+            storage_path or self.DEFAULT_STORAGE_PATH)
         self.logger = logger or logging.getLogger(__name__)
         self.client = httpx.Client(timeout=timeout, verify=verify)
 
@@ -81,7 +83,8 @@ class BrowserPassport:
         try:
             storage_path = Path(self.storage_path)
             if not storage_path.exists():
-                self.logger.warning("Storage file not found at %s", self.storage_path)
+                self.logger.warning(
+                    "Storage file not found at %s", self.storage_path)
                 return False
 
             with open(storage_path) as f:
@@ -137,7 +140,8 @@ class BrowserPassport:
             }
 
             # Merge cookies, prioritizing user-provided ones
-            request_kwargs["cookies"] = {**domain_data.cookies, **(cookies or {})}
+            request_kwargs["cookies"] = {
+                **domain_data.cookies, **(cookies or {})}
 
         return request_kwargs
 
@@ -184,28 +188,20 @@ class BrowserPassport:
     def list_domains(self) -> List[str]:
         """List all domains with stored credentials."""
         try:
-            with open(self.storage_path) as f:
-                storage = json.load(f)
+            storage = self._get_storage()
             return sorted(storage.keys())
         except Exception as e:
-            raise StorageError(f"Failed to list domains: {str(e)}")
+            raise StorageError(f"Failed to list domains: {str(e)}") from e
 
     def get_domain_stats(self, domain: str) -> Optional[Dict[str, Any]]:
         """Get statistics for a specific domain."""
         try:
-            with open(self.storage_path) as f:
-                storage = json.load(f)
-
+            storage = self._get_storage()
             if domain not in storage:
                 return None
-
-            data = storage[domain]
             return {
-                "first_seen": data.get("first_seen"),
-                "last_updated": data.get("last_updated"),
-                "request_count": data.get("request_count"),
-                "header_count": len(data.get("headers", {})),
-                "cookie_count": len(data.get("cookies", {})),
+                "count": len(storage[domain]),
+                "last_updated": max(x.timestamp for x in storage[domain])
             }
         except Exception as e:
-            raise StorageError(f"Failed to get domain stats: {str(e)}")
+            raise StorageError(f"Failed to get domain stats: {str(e)}") from e

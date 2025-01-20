@@ -1,13 +1,14 @@
-from pathlib import Path
+import json
+import os
 import platform
 import shutil
 import stat
 import subprocess
 import sys
-from typing import NamedTuple, Optional, List
+from pathlib import Path
+from typing import List, NamedTuple
+
 import click
-import json
-import os
 
 
 class PlatformPaths(NamedTuple):
