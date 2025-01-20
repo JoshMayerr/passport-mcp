@@ -1,12 +1,12 @@
 # PassportMCP
 
-PassportMCP is a powerful tool that lets developers build MCP (Multi-Client Protocol) servers for any website by automatically syncing browser authentication to outbound requests. It's built on top of BrowserPassport, which handles the low-level browser authentication state capture and reuse.
+PassportMCP lets you build MCP servers for any given website with automatic browser auth syncing. It wraps FastMCP and automatically adds necessary auth headers and cookies from the browser to outbound requests. Bulid any MCP you want without worrying about auth! As long as you log in through the browser, it's fair game. Often easier than paying for developer APIs (ex: twitter/X), avoiding rate limits, or great for sites that don't have one.
 
 ## How It Works
 
 1. Install the Chrome extension
 2. Log into your website normally in Chrome
-3. The extension captures authentication headers and cookies
+3. The extension sync authentication headers and cookies
 4. Use PassportMCP to build authenticated MCP tools
 
 ```python
@@ -18,6 +18,7 @@ mcp = PassportMCP("linkedin", "linkedin.com")
 # Define MCP tools using the decorator
 @mcp.tool()
 async def search_linkedin(query: str):
+    # make a get request to the real linkedin api, not the developer api
     response = mcp.browser.get(
         "https://www.linkedin.com/voyager/api/search/blended",
         params={"keywords": query}
@@ -27,14 +28,13 @@ async def search_linkedin(query: str):
 
 ## Features
 
-- 🔒 Automatic browser auth syncing
-- 🚀 Simple MCP tool creation
-- 🛠️ Works with any website
-- 🔄 Always uses latest auth state
-- 📋 Handles cookies and headers
-- ⚡ Zero configuration needed
+- Automatic browser auth syncing
+- Normal MCP tool creation
+- Works with any website
+- Always uses latest auth state
+- Handles cookies and headers
 
-## Installation
+## Installation (order doesn't matter)
 
 1. **Install Chrome Extension**:
 
@@ -71,6 +71,8 @@ async def search_linkedin(query: str):
        return response.json()
    ```
 
+3. Use the MCP server with a client as normal.
+
 ## Architecture
 
 PassportMCP consists of three main components:
@@ -96,7 +98,7 @@ PassportMCP consists of three main components:
 1. **Clone Repository**:
 
    ```bash
-   git clone https://github.com/your-org/passport-mcp.git
+   git clone https://github.com/joshmayerr/passport-mcp.git
    cd passport-mcp
    ```
 
@@ -130,28 +132,12 @@ passport-mcp/
 
 ## Security
 
-PassportMCP prioritizes security:
-
 - Only captures auth-related data
 - Stores securely on local machine
 - No remote data transmission
 - Limited to authorized domains
 
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-1. **Fork and Clone**:
-
-   ```bash
-   git clone https://github.com/your-username/passport-mcp.git
-   ```
-
-2. **Make Changes**:
-   - Create feature branch
-   - Make changes
-   - Add tests
-   - Submit PR
+All credentials NEVER leave your computer, unlike startups like Anon and Rabbit who want to automate your accounts in the cloud. The LLM will never see your credentials either.
 
 ## Roadmap
 
@@ -171,15 +157,8 @@ A: The extension monitors web requests and captures auth-related headers and coo
 A: Yes! All data stays on your machine and is only used for domains you authorize.
 
 **Q: What browsers are supported?**
-A: Currently Chrome only. Firefox and Safari coming soon.
+A: Currently Chrome only.
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details
-
-## Support
-
-- 📚 [Documentation](https://docs.passportmcp.dev)
-- 💬 [Discord Community](https://discord.gg/passportmcp)
-- 🐛 [Issue Tracker](https://github.com/your-org/passport-mcp/issues)
-- 📧 Email: support@passportmcp.dev

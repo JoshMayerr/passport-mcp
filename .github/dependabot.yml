@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Python SDK dependencies
+  - package-ecosystem: "pip"
+    directory: "/sdks/python"
+    schedule:
+      interval: "monthly"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
