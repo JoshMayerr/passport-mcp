@@ -12,6 +12,7 @@ import os
 
 class PlatformPaths(NamedTuple):
     """Platform-specific paths for BrowserPassport installation"""
+
     native_host_dir: Path
     chrome_manifest_dir: Path
     data_dir: Path
@@ -36,17 +37,17 @@ class SetupManager:
         if system == "Darwin":  # macOS
             return PlatformPaths(
                 native_host_dir=Path.home() / "Library/Application Support/BrowserPassport",
-                chrome_manifest_dir=Path.home(
-                ) / "Library/Application Support/Google/Chrome/NativeMessagingHosts",
+                chrome_manifest_dir=Path.home()
+                / "Library/Application Support/Google/Chrome/NativeMessagingHosts",
                 data_dir=Path.home() / "Library/Logs/request_monitor",
-                log_dir=Path.home() / "Library/Logs/BrowserPassport"
+                log_dir=Path.home() / "Library/Logs/BrowserPassport",
             )
         elif system == "Linux":
             return PlatformPaths(
                 native_host_dir=Path.home() / ".local/share/browserpassport",
                 chrome_manifest_dir=Path.home() / ".config/google-chrome/NativeMessagingHosts",
                 data_dir=Path.home() / ".local/share/browserpassport/data",
-                log_dir=Path.home() / ".local/share/browserpassport/logs"
+                log_dir=Path.home() / ".local/share/browserpassport/logs",
             )
         elif system == "Windows":
             raise NotImplementedError("Windows support coming soon!")
@@ -69,28 +70,24 @@ class SetupManager:
 
         # Make executable
         current = stat.S_IMODE(os.lstat(native_host_path).st_mode)
-        os.chmod(native_host_path, current | stat.S_IXUSR |
-                 stat.S_IXGRP | stat.S_IXOTH)
+        os.chmod(native_host_path, current | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
         return native_host_path
 
     def create_manifest(self, native_host_path: Path) -> Path:
         """Create Chrome native messaging host manifest"""
-        manifest_path = self.paths.chrome_manifest_dir / \
-            f"{self.NATIVE_HOST_NAME}.json"
+        manifest_path = self.paths.chrome_manifest_dir / f"{self.NATIVE_HOST_NAME}.json"
 
         manifest = {
             "name": self.NATIVE_HOST_NAME,
             "description": "BrowserPassport Native Messaging Host",
             "path": str(native_host_path),
             "type": "stdio",
-            "allowed_origins": [
-                f"chrome-extension://{self.CHROME_STORE_ID}/"
-            ]
+            "allowed_origins": [f"chrome-extension://{self.CHROME_STORE_ID}/"],
         }
 
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(manifest, f, indent=2)
 
         return manifest_path
@@ -99,10 +96,7 @@ class SetupManager:
         """Test native messaging host functionality"""
         try:
             result = subprocess.run(
-                [str(native_host_path)],
-                input=b'{"type": "test"}\n',
-                capture_output=True,
-                timeout=2
+                [str(native_host_path)], input=b'{"type": "test"}\n', capture_output=True, timeout=2
             )
             return result.returncode == 0
         except subprocess.TimeoutExpired:
@@ -126,8 +120,7 @@ class SetupManager:
             issues.append("Native host not executable")
 
         # Check manifest
-        manifest_path = self.paths.chrome_manifest_dir / \
-            f"{self.NATIVE_HOST_NAME}.json"
+        manifest_path = self.paths.chrome_manifest_dir / f"{self.NATIVE_HOST_NAME}.json"
         if not manifest_path.exists():
             issues.append("Chrome manifest missing")
         else:
@@ -135,8 +128,7 @@ class SetupManager:
                 with open(manifest_path) as f:
                     manifest = json.load(f)
                 if manifest.get("path") != str(native_host_path):
-                    issues.append(
-                        "Manifest points to wrong native host location")
+                    issues.append("Manifest points to wrong native host location")
             except json.JSONDecodeError:
                 issues.append("Invalid manifest JSON")
 
@@ -163,8 +155,7 @@ def setup():
 
         # Install native host from shared directory
         click.echo("\n📦 Installing native messaging host...")
-        shared_dir = Path(__file__).parent.parent.parent.parent / \
-            "shared" / "native-host"
+        shared_dir = Path(__file__).parent.parent.parent.parent / "shared" / "native-host"
         if not (shared_dir / "native_host.py").exists():
             raise RuntimeError("Native host not found in shared directory")
         native_host_path = manager.install_native_host(shared_dir)
@@ -183,12 +174,13 @@ def setup():
             click.echo("⚠️ Native host test failed")
 
         # Install extension
-        store_url = f"https://chrome.google.com/webstore/detail/browserpassport/{manager.CHROME_STORE_ID}"
+        store_url = (
+            f"https://chrome.google.com/webstore/detail/browserpassport/{manager.CHROME_STORE_ID}"
+        )
         click.echo(f"\n🔗 Installing Chrome extension from: {store_url}")
         click.launch(store_url)
 
-        click.confirm(
-            "\nPress Enter after installing the extension", default=True)
+        click.confirm("\nPress Enter after installing the extension", default=True)
 
         click.echo("\n✨ Setup complete!")
         click.echo("\nExample usage:")
@@ -221,8 +213,7 @@ def doctor():
             for issue in issues:
                 click.echo(f"  • {issue}")
 
-            click.echo(
-                "\nTry running 'browserpassport setup' to fix these issues")
+            click.echo("\nTry running 'browserpassport setup' to fix these issues")
             sys.exit(1)
 
     except Exception as e:
@@ -248,8 +239,7 @@ def uninstall():
             click.echo(f"Removed {native_host_path}")
 
         # Remove manifest
-        manifest_path = manager.paths.chrome_manifest_dir / \
-            f"{manager.NATIVE_HOST_NAME}.json"
+        manifest_path = manager.paths.chrome_manifest_dir / f"{manager.NATIVE_HOST_NAME}.json"
         if manifest_path.exists():
             manifest_path.unlink()
             click.echo(f"Removed {manifest_path}")

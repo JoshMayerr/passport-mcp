@@ -12,7 +12,7 @@ async def search_linkedin(query: str):
     # The browser instance is automatically authenticated
     response = mcp.browser.get(
         "https://www.linkedin.com/voyager/api/search/blended",
-        params={"keywords": query, "origin": "GLOBAL_SEARCH_HEADER"}
+        params={"keywords": query, "origin": "GLOBAL_SEARCH_HEADER"},
     )
     return response.json()
 
@@ -35,6 +35,8 @@ async def main():
     profile = await get_profile("bill-gates")
     print("Profile data:", profile)
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

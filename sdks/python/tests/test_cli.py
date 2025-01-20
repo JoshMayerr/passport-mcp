@@ -15,9 +15,7 @@ def test_create_manifest(tmp_path):
     native_host_path.touch()
 
     # Override chrome manifest dir for testing
-    manager.paths = manager.paths._replace(
-        chrome_manifest_dir=tmp_path
-    )
+    manager.paths = manager.paths._replace(chrome_manifest_dir=tmp_path)
 
     manifest_path = manager.create_manifest(native_host_path)
     assert manifest_path.exists()

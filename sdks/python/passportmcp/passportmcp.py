@@ -29,6 +29,7 @@ class PassportMCP:
         Args:
             name: Optional name for the tool. Defaults to the function name.
         """
+
         def decorator(func: Callable) -> Callable:
             tool_name = name or func.__name__
 
@@ -44,6 +45,7 @@ class PassportMCP:
             self._tools[tool_name] = wrapper
 
             return wrapper
+
         return decorator
 
     def get_tools(self) -> dict:

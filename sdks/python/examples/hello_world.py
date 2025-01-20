@@ -8,7 +8,8 @@ def main():
 
     try:
         response = client.get(
-            "https://www.linkedin.com/voyager/api/graphql/api/voyager/api/graphql?includeWebMetadata=true&variables=()&queryId=voyagerDashMySettings.7ea6de345b41dfb57b660a9a4bebe1b8")
+            "https://www.linkedin.com/voyager/api/graphql/api/voyager/api/graphql?includeWebMetadata=true&variables=()&queryId=voyagerDashMySettings.7ea6de345b41dfb57b660a9a4bebe1b8"
+        )
 
         if response.status_code == 200:
             data = response.json()
