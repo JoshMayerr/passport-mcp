@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "BrowserPassport",
+  "version": "0.0.1",
+  "description": "Use browser authentication in your applications",
+  "permissions": ["nativeMessaging", "webRequest", "cookies"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/sfsicon16.png",
+      "48": "icons/sfsicon48.png",
+      "128": "icons/sfsicon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/sfsicon16.png",
+    "48": "icons/sfsicon48.png",
+    "128": "icons/sfsicon128.png"
+  }
+}

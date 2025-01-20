@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "browserpassport"
+version = "0.1.0"
+description = "Use browser authentication in your applications"
+requires-python = ">=3.8"
+dependencies = ["httpx>=0.25.0", "click>=8.0.0"]
+
+[project.scripts]
+browserpassport = "browserpassport.cli:cli"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/browserpassport",
+    "/shared/native-host/*.py", # Include native host from shared directory
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["browserpassport"]

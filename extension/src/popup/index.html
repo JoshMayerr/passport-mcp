@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BrowserPassport</title>
+    <meta charset="utf-8" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="w-64 p-4 bg-gray-50">
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-900">BrowserPassport</h1>
+        <div
+          id="status-indicator"
+          class="w-3 h-3 rounded-full bg-gray-300"
+        ></div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="monitoring-toggle" class="sr-only peer" />
+          <div
+            class="w-12 h-7 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"
+          ></div>
+        </label>
+        <span class="text-sm font-medium text-gray-900">Monitor Requests</span>
+      </div>
+
+      <div class="text-xs text-gray-500" id="status-text">Not monitoring</div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
