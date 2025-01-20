@@ -37,11 +37,14 @@ jobs:
           pip install -e ".[dev]"
           pip install types-requests types-setuptools
 
-      - name: Lint with Ruff
-        working-directory: ./sdks/python
+      - name: Run code formatting
         run: |
+          cd sdks/python
+          ruff format .
+      - name: Run linting
+        run: |
+          cd sdks/python
           ruff check .
-          ruff format --check .
 
       - name: Type check with mypy
         working-directory: ./sdks/python

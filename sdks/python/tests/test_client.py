@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from passportmcp import BrowserPassport
+from passportmcp import PassportMCPClient
 
 
 @pytest.fixture
@@ -20,13 +20,17 @@ def mock_storage(tmp_path):
 
 
 def test_client_initialization():
-    client = BrowserPassport()
-    assert client is not None
+    client = PassportMCPClient("test-api-key")
+    assert client.api_key == "test-api-key"
+    assert client.base_url == "https://api.passportmcp.com"
+
+    client = PassportMCPClient("test-api-key", "https://custom-url.com/")
+    assert client.base_url == "https://custom-url.com"
 
 
 # def test_client_basic_flow():
-    # client = BrowserPassport()
-    # Add basic flow test here based on your implementation
-    # For example:
-    # result = client.authenticate()
-    # assert result.success is True
+# client = BrowserPassport()
+# Add basic flow test here based on your implementation
+# For example:
+# result = client.authenticate()
+# assert result.success is True
