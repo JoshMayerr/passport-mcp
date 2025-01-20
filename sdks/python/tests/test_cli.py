@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from browserpassport.cli import SetupManager
+from passportmcp.cli import SetupManager
 
 
 def test_setup_manager_paths():

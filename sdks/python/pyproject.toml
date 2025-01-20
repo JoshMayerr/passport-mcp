@@ -3,20 +3,63 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "browserpassport"
+name = "passport-mcp"
 version = "0.1.0"
 description = "Use browser authentication in your applications"
 requires-python = ">=3.8"
 dependencies = ["httpx>=0.25.0", "click>=8.0.0"]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+    "ipython>=8.0.0",
+]
+
 [project.scripts]
-browserpassport = "browserpassport.cli:cli"
+passportmcp = "passportmcp.cli:cli"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/browserpassport",
+    "/passportmcp",
     "/shared/native-host/*.py", # Include native host from shared directory
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["browserpassport"]
+packages = ["passportmcp"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true

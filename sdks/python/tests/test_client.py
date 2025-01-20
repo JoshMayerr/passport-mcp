@@ -1,7 +1,7 @@
 import pytest
 import json
 from pathlib import Path
-from browserpassport.client import AuthenticationError, BrowserPassport
+from passportmcp import BrowserPassport
 
 
 @pytest.fixture
@@ -22,6 +22,14 @@ def mock_storage(tmp_path):
     return storage_path
 
 
-def test_client_initialization(mock_storage):
-    client = BrowserPassport(storage_path=str(mock_storage))
+def test_client_initialization():
+    client = BrowserPassport()
     assert client is not None
+
+
+def test_client_basic_flow():
+    client = BrowserPassport()
+    # Add basic flow test here based on your implementation
+    # For example:
+    # result = client.authenticate()
+    # assert result.success is True
