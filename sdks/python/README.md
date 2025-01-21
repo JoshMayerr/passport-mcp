@@ -4,12 +4,11 @@ PassportMCP (ppmcp) lets you build MCP servers for any given website with automa
 
 ## Features
 
-- 🔐 Automatic browser auth syncing
-- 🛠️ Normal MCP tool creation
-- 🌐 Works with any website
-- 🔄 Always uses latest auth state
-- 🍪 Handles cookies and headers
-- 🔒 All credentials stay on your machine
+- Automatic browser auth syncing (for any auth type)
+- Normal MCP tool creation
+- Works with any website
+- Always uses latest auth state
+- All credentials stay on your machine
 
 ## Quick Start
 
@@ -127,25 +126,6 @@ async def search_linkedin(query: str):
     return response.json()
 ```
 
-## Troubleshooting
-
-1. **Extension Not Working**
-
-   - Check if "Monitor Requests" is enabled
-   - Run `ppmcp doctor` to verify installation
-   - Make sure you're logged into the target website
-
-2. **Authentication Errors**
-
-   - Visit the website in Chrome and log in again
-   - Check if cookies are being properly synced
-   - Run `ppmcp uninstall` and then `ppmcp setup` to reset
-
-3. **Native Host Issues**
-   - Check Chrome's extension logs for errors
-   - Verify the manifest is correctly installed
-   - Try rebuilding and reloading the extension
-
 ## Security
 
 - ✅ Credentials never leave your machine
@@ -153,7 +133,7 @@ async def search_linkedin(query: str):
 - ✅ Limited to authorized domains
 - ✅ LLMs never see your credentials
 
-Unlike services like Anon and Rabbit that automate accounts in the cloud, PassportMCP keeps everything local and secure.
+Unlike services like Anon and Rabbit that automate accounts in the cloud, PassportMCP keeps everything local.
 
 ## Development
 
