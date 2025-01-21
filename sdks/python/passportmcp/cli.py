@@ -6,7 +6,7 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 import click
 
@@ -25,10 +25,11 @@ class SetupManager:
 
     NATIVE_HOST_NAME = "com.browserpassport.native_messaging_host"
     # We'll replace this with actual ID after Chrome Web Store publication
-    CHROME_STORE_ID = "clcpnaneiincilapecmlpjnahphejceb"
+    CHROME_STORE_ID = "alkipahekcclcplmedmifnbeonknmhoh"
 
-    def __init__(self):
+    def __init__(self, extension_id: Optional[str] = None):
         self.paths = self._get_platform_paths()
+        self.extension_id = extension_id or self.CHROME_STORE_ID
 
     @staticmethod
     def _get_platform_paths() -> PlatformPaths:
@@ -71,20 +72,22 @@ class SetupManager:
 
         # Make executable
         current = stat.S_IMODE(os.lstat(native_host_path).st_mode)
-        os.chmod(native_host_path, current | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        os.chmod(native_host_path, current | stat.S_IXUSR |
+                 stat.S_IXGRP | stat.S_IXOTH)
 
         return native_host_path
 
     def create_manifest(self, native_host_path: Path) -> Path:
         """Create Chrome native messaging host manifest"""
-        manifest_path = self.paths.chrome_manifest_dir / f"{self.NATIVE_HOST_NAME}.json"
+        manifest_path = self.paths.chrome_manifest_dir / \
+            f"{self.NATIVE_HOST_NAME}.json"
 
         manifest = {
             "name": self.NATIVE_HOST_NAME,
             "description": "BrowserPassport Native Messaging Host",
             "path": str(native_host_path),
             "type": "stdio",
-            "allowed_origins": [f"chrome-extension://{self.CHROME_STORE_ID}/"],
+            "allowed_origins": [f"chrome-extension://{self.extension_id}/"],
         }
 
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -121,7 +124,8 @@ class SetupManager:
             issues.append("Native host not executable")
 
         # Check manifest
-        manifest_path = self.paths.chrome_manifest_dir / f"{self.NATIVE_HOST_NAME}.json"
+        manifest_path = self.paths.chrome_manifest_dir / \
+            f"{self.NATIVE_HOST_NAME}.json"
         if not manifest_path.exists():
             issues.append("Chrome manifest missing")
         else:
@@ -129,7 +133,8 @@ class SetupManager:
                 with open(manifest_path) as f:
                     manifest = json.load(f)
                 if manifest.get("path") != str(native_host_path):
-                    issues.append("Manifest points to wrong native host location")
+                    issues.append(
+                        "Manifest points to wrong native host location")
             except json.JSONDecodeError:
                 issues.append("Invalid manifest JSON")
 
@@ -143,12 +148,17 @@ def cli():
 
 
 @cli.command()
-def setup():
+@click.option('--local', is_flag=True, help='Use local extension instead of Chrome Web Store version')
+@click.option('--extension-id', help='Extension ID for local extension')
+def setup(local: bool, extension_id: Optional[str]):
     """Set up BrowserPassport"""
     click.echo("🚀 Setting up BrowserPassport...")
 
+    if local and not extension_id:
+        extension_id = click.prompt('Please enter your local extension ID')
+
     try:
-        manager = SetupManager()
+        manager = SetupManager(extension_id if local else None)
 
         # Create directories
         click.echo("\n📁 Creating directories...")
@@ -156,7 +166,8 @@ def setup():
 
         # Install native host from shared directory
         click.echo("\n📦 Installing native messaging host...")
-        shared_dir = Path(__file__).parent.parent.parent.parent / "shared" / "native-host"
+        shared_dir = Path(__file__).parent.parent.parent.parent / \
+            "shared" / "native-host"
         if not (shared_dir / "native_host.py").exists():
             raise RuntimeError("Native host not found in shared directory")
         native_host_path = manager.install_native_host(shared_dir)
@@ -174,14 +185,25 @@ def setup():
         else:
             click.echo("⚠️ Native host test failed")
 
-        # Install extension
-        store_url = (
-            f"https://chrome.google.com/webstore/detail/browserpassport/{manager.CHROME_STORE_ID}"
-        )
-        click.echo(f"\n🔗 Installing Chrome extension from: {store_url}")
-        click.launch(store_url)
+        if not local:
+            # Install extension from Chrome Web Store
+            store_url = (
+                f"https://chrome.google.com/webstore/detail/browserpassport/{manager.CHROME_STORE_ID}"
+            )
+            click.echo(f"\n🔗 Installing Chrome extension from: {store_url}")
+            click.launch(store_url)
+        else:
+            # Instructions for local extension
+            click.echo("\n🔧 Using local extension")
+            click.echo("To complete setup:")
+            click.echo("1. Open Chrome and go to chrome://extensions")
+            click.echo("2. Enable 'Developer mode'")
+            click.echo("3. Click 'Load unpacked'")
+            click.echo(
+                "4. Select the 'extension/dist' directory from your local repository")
 
-        click.confirm("\nPress Enter after installing the extension", default=True)
+        click.confirm(
+            "\nPress Enter after installing the extension", default=True)
 
         click.echo("\n✨ Setup complete!")
         click.echo("\nExample usage:")
@@ -193,8 +215,12 @@ def setup():
     print(response.json())
         """)
 
+        click.echo("\nTo check installation status:")
+        click.echo("    ppmcp doctor")
+
     except Exception as e:
         click.echo(f"\n❌ Setup failed: {str(e)}")
+        click.echo("\nTry running 'ppmcp doctor' to diagnose the issue")
         sys.exit(1)
 
 
@@ -214,7 +240,8 @@ def doctor():
             for issue in issues:
                 click.echo(f"  • {issue}")
 
-            click.echo("\nTry running 'browserpassport setup' to fix these issues")
+            click.echo(
+                "\nTry running 'ppmcp setup' to fix these issues")
             sys.exit(1)
 
     except Exception as e:
@@ -240,7 +267,8 @@ def uninstall():
             click.echo(f"Removed {native_host_path}")
 
         # Remove manifest
-        manifest_path = manager.paths.chrome_manifest_dir / f"{manager.NATIVE_HOST_NAME}.json"
+        manifest_path = manager.paths.chrome_manifest_dir / \
+            f"{manager.NATIVE_HOST_NAME}.json"
         if manifest_path.exists():
             manifest_path.unlink()
             click.echo(f"Removed {manifest_path}")

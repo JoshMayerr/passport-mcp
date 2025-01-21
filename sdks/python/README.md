@@ -1,76 +1,178 @@
-# Passport MCP Python SDK
+# PassportMCP Python SDK
 
-A Python SDK for interacting with the Passport MCP browser extension, enabling browser automation and control.
+PassportMCP (ppmcp) lets you build MCP servers for any given website with automatic browser auth syncing. Every website is fair game. It wraps FastMCP and automatically adds necessary auth headers and cookies from the browser to outbound requests. As long as you log in through the browser, it's ready to be used. Often easier than paying for developer APIs (ex: twitter/X), avoiding rate limits, waiting for approval, or great for sites that don't have one.
 
-## Installation
+## Features
+
+- 🔐 Automatic browser auth syncing
+- 🛠️ Normal MCP tool creation
+- 🌐 Works with any website
+- 🔄 Always uses latest auth state
+- 🍪 Handles cookies and headers
+- 🔒 All credentials stay on your machine
+
+## Quick Start
+
+1. **Install the Package**
 
 ```bash
 pip install ppmcp
-ppmcp setup # get local message host
 ```
 
-## Prerequisites
-
-- Python 3.10 or higher
-- Passport MCP browser extension
-
-## Examples
-
-Check out the `examples` directory for more detailed examples:
-
-## Development Setup
-
-1. Create and activate a virtual environment:
+2. **Set Up Native Messaging and Auth Syncing**
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+ppmcp setup  # Sets up with Chrome Web Store extension
 ```
 
-2. Install development dependencies:
+3. **Enable Request Monitoring**
+
+   - Click the PassportMCP extension icon in Chrome
+   - Toggle "Monitor Requests" on
+   - Visit and log into your target website
+
+4. **Create Your First MCP Tool**
+
+```python
+from passportmcp import PassportMCP
+
+# Create an MCP instance
+mcp = PassportMCP("example", "example.com")
+
+# Define a tool
+@mcp.tool()
+async def get_data():
+    response = mcp.client.get("https://example.com/api/data")
+    return response.json()
+```
+
+## Installation Options
+
+### Option 1: Chrome Web Store Extension (Recommended)
 
 ```bash
-pip install -e ".[dev]"
+pip install ppmcp
+ppmcp setup
 ```
 
-3. Run tests:
+### Option 2: Local Development
+
+1. **Build the Extension**
 
 ```bash
-pytest tests/
+git clone https://github.com/joshmayerr/passport-mcp.git
+cd extension
+npm install
+npm run build  # or npm run dev for watch mode
 ```
 
-## Building and Publishing
+2. **Load in Chrome**
 
-1. Update version in `pyproject.toml`
+   - Open Chrome and go to `chrome://extensions`
+   - Enable "Developer mode" in the top right
+   - Click "Load unpacked" and select the `extension/dist` directory
+   - Note the extension ID from Chrome (shown under the extension name)
 
-2. Build the package:
+3. **Set Up Native Messaging**
 
 ```bash
-python -m build
+ppmcp setup --local --extension-id=your_extension_id
+# OR
+ppmcp setup --local  # You'll be prompted for the ID
 ```
 
-3. Install build dependencies:
+### CLI Commands
+
+- `ppmcp setup` - Set up native messaging
+- `ppmcp doctor` - Check installation status
+- `ppmcp uninstall` - Remove PassportMCP
+
+## How It Works
+
+PassportMCP consists of three main components:
+
+1. **Chrome Extension**
+
+   - Monitors web requests
+   - Captures authentication state
+   - Sends to native host
+
+2. **Native Host**
+
+   - Receives data from extension
+   - Stores authentication state
+   - Provides data to SDK
+
+3. **SDK**
+   - PassportMCP: High-level MCP tool creation
+   - BrowserPassport: Low-level auth handling
+
+## Advanced Example: LinkedIn API
+
+```python
+from passportmcp import PassportMCP
+
+mcp = PassportMCP("linkedin", "linkedin.com")
+
+@mcp.tool()
+async def search_linkedin(query: str):
+    response = mcp.client.get(
+        "https://www.linkedin.com/voyager/api/graphql",
+        params={
+            "includeWebMetadata": "true",
+            "variables": "()",
+            "queryId": "voyagerDashMySettings.7ea6de345b41dfb57b660a9a4bebe1b8"
+        }
+    )
+    return response.json()
+```
+
+## Troubleshooting
+
+1. **Extension Not Working**
+
+   - Check if "Monitor Requests" is enabled
+   - Run `ppmcp doctor` to verify installation
+   - Make sure you're logged into the target website
+
+2. **Authentication Errors**
+
+   - Visit the website in Chrome and log in again
+   - Check if cookies are being properly synced
+   - Run `ppmcp uninstall` and then `ppmcp setup` to reset
+
+3. **Native Host Issues**
+   - Check Chrome's extension logs for errors
+   - Verify the manifest is correctly installed
+   - Try rebuilding and reloading the extension
+
+## Security
+
+- ✅ Credentials never leave your machine
+- ✅ No cloud storage or transmission
+- ✅ Limited to authorized domains
+- ✅ LLMs never see your credentials
+
+Unlike services like Anon and Rabbit that automate accounts in the cloud, PassportMCP keeps everything local and secure.
+
+## Development
+
+For SDK development:
 
 ```bash
-pip install build twine
+cd sdks/python
+pip install -e .
 ```
 
-4. Test the build:
+## Roadmap
 
-```bash
-pip install dist/ppmcp-0.1.0-py3-none-any.whl
-```
-
-5. Publish to PyPI:
-
-```bash
-python -m twine upload dist/*
-```
+- [ ] TypeScript SDK
+- [ ] Firefox extension
+- [ ] Safari extension
+- [ ] Auth state sharing
+- [ ] Enterprise features
+- [ ] More language SDKs
 
 ## License
 
-MIT License
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+MIT License - see [LICENSE](LICENSE) for details

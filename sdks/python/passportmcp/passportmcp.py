@@ -18,8 +18,8 @@ class PassportMCP:
         """
         self.name = name
         self.domain = domain
-        self.browser = BrowserPassport(**kwargs)
+        self.client = BrowserPassport(**kwargs)
 
     def __getattr__(self, name: str) -> Any:
         """Proxy unknown attributes to the browser instance."""
-        return getattr(self.browser, name)
+        return getattr(self.client, name)
