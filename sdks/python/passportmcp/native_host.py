@@ -124,35 +124,74 @@ class DomainStorage:
             log(f"Error saving storage: {e}")
             raise
 
-    def update_domain(
-        self, domain: str, request_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def update_domain(self, domain: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Update stored data for a domain."""
         timestamp = request_data["timestamp"]
+        url_path = request_data["url"].split(
+            "/", 3)[3] if len(request_data["url"].split("/")) > 3 else "/"
 
+        # Initialize domain if not exists
         if domain not in self.domains:
             self.domains[domain] = {
                 "first_seen": timestamp,
                 "last_updated": timestamp,
                 "request_count": 0,
-                "headers": {},
-                "cookies": {},
+                "paths": {
+                    "/": {  # Root path always exists
+                        "headers": {},
+                        "cookies": {},
+                        "first_seen": timestamp,
+                        "last_updated": timestamp,
+                        "request_count": 0
+                    }
+                }
             }
 
         domain_data = self.domains[domain]
         domain_data["last_updated"] = timestamp
         domain_data["request_count"] += 1
 
-        # Update headers with latest value
-        for header in request_data["headers"]:
-            name = header["name"].lower()  # Normalize header names
-            # Skip certain headers that shouldn't be stored
-            if name not in {"content-length", "content-encoding", "host"}:
-                domain_data["headers"][name] = header["value"]
+        # Split path into components for hierarchical storage
+        path_parts = [""] + [p for p in url_path.split("/") if p]
+        current_path = ""
 
-        # Update cookies with latest value
-        for cookie in request_data["cookies"]:
-            domain_data["cookies"][cookie["name"]] = cookie["value"]
+        # Create/update each path level
+        for part in path_parts:
+            current_path = current_path + "/" + part if part else "/"
+            current_path = current_path.rstrip("/") or "/"
+
+            if current_path not in domain_data["paths"]:
+                domain_data["paths"][current_path] = {
+                    "headers": {},
+                    "cookies": {},
+                    "first_seen": timestamp,
+                    "last_updated": timestamp,
+                    "request_count": 0
+                }
+
+            path_data = domain_data["paths"][current_path]
+            path_data["last_updated"] = timestamp
+            path_data["request_count"] += 1
+
+            # Only store headers/cookies that are different from parent path
+            parent_path = "/" if current_path == "/" else current_path.rsplit("/", 1)[
+                0] or "/"
+            parent_data = domain_data["paths"][parent_path]
+
+            # Update headers that are different from parent
+            for header in request_data["headers"]:
+                name = header["name"].lower()
+                if name not in {"content-length", "content-encoding", "host"}:
+                    value = header["value"]
+                    if value != parent_data["headers"].get(name):
+                        path_data["headers"][name] = value
+
+            # Update cookies that are different from parent
+            for cookie in request_data["cookies"]:
+                name = cookie["name"]
+                value = cookie["value"]
+                if value != parent_data["cookies"].get(name):
+                    path_data["cookies"][name] = value
 
         self.save_storage()
         return domain_data

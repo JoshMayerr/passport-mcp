@@ -10,14 +10,50 @@ import httpx
 
 
 @dataclass
-class DomainData:
-    """Structured container for domain-specific data."""
+class PathData:
+    """Structured container for path-specific data."""
 
     headers: Dict[str, str]
     cookies: Dict[str, str]
     first_seen: str
     last_updated: str
     request_count: int
+
+
+@dataclass
+class DomainData:
+    """Structured container for domain-specific data with path inheritance."""
+
+    paths: Dict[str, PathData]  # Key is the path, e.g. "/", "/api", "/api/v2"
+    first_seen: str
+    last_updated: str
+    request_count: int
+
+    def get_credentials_for_path(self, path: str) -> tuple[Dict[str, str], Dict[str, str]]:
+        """Get merged headers and cookies for a specific path, applying inheritance.
+
+        Args:
+            path: The path to get credentials for (e.g. "/api/v2/users")
+
+        Returns:
+            Tuple of (headers, cookies) with inheritance applied
+        """
+        # Split path into components
+        path_parts = path.split("/")
+        current_path = ""
+        merged_headers: Dict[str, str] = {}
+        merged_cookies: Dict[str, str] = {}
+
+        # Walk up the path tree
+        for i in range(len(path_parts)):
+            current_path = "/" + "/".join(filter(None, path_parts[:i + 1]))
+            if current_path in self.paths:
+                path_data = self.paths[current_path]
+                # Update with more specific path data
+                merged_headers.update(path_data.headers)
+                merged_cookies.update(path_data.cookies)
+
+        return merged_headers, merged_cookies
 
 
 class BrowserPassportError(Exception):
@@ -50,7 +86,8 @@ class BrowserPassport:
     """Enhanced HTTP client that uses stored browser credentials."""
 
     DEFAULT_STORAGE_PATH = "~/Library/Logs/request_monitor/domains.json"
-    EXCLUDED_HEADERS = {"accept", "host", "content-encoding", "content-length"}
+    # EXCLUDED_HEADERS = {"accept", "content-type", "content-encoding", "content-length"}
+    EXCLUDED_HEADERS = {}
 
     def __init__(
         self,
@@ -67,7 +104,8 @@ class BrowserPassport:
             verify: Whether to verify SSL certificates.
             logger: Optional logger instance.
         """
-        self.storage_path = os.path.expanduser(storage_path or self.DEFAULT_STORAGE_PATH)
+        self.storage_path = os.path.expanduser(
+            storage_path or self.DEFAULT_STORAGE_PATH)
         self.logger = logger or logging.getLogger(__name__)
         self.client = httpx.Client(timeout=timeout, verify=verify)
 
@@ -82,7 +120,8 @@ class BrowserPassport:
         try:
             storage_path = Path(self.storage_path)
             if not storage_path.exists():
-                self.logger.warning("Storage file not found at %s", self.storage_path)
+                self.logger.warning(
+                    "Storage file not found at %s", self.storage_path)
                 return False
 
             with open(storage_path) as f:
@@ -105,12 +144,23 @@ class BrowserPassport:
                 return None
 
             data = storage[domain]
+
+            # Convert stored paths to PathData objects
+            paths = {}
+            for path, path_data in data.get("paths", {}).items():
+                paths[path] = PathData(
+                    headers=path_data.get("headers", {}),
+                    cookies=path_data.get("cookies", {}),
+                    first_seen=path_data.get("first_seen", ""),
+                    last_updated=path_data.get("last_updated", ""),
+                    request_count=path_data.get("request_count", 0)
+                )
+
             return DomainData(
-                headers=data.get("headers", {}),
-                cookies=data.get("cookies", {}),
+                paths=paths,
                 first_seen=data.get("first_seen", ""),
                 last_updated=data.get("last_updated", ""),
-                request_count=data.get("request_count", 0),
+                request_count=data.get("request_count", 0)
             )
 
         except Exception as e:
@@ -131,19 +181,37 @@ class BrowserPassport:
         **kwargs,
     ) -> Dict[str, Any]:
         """Prepare request with stored credentials."""
-        domain_data = self._load_domain_data(url)
         request_kwargs = kwargs.copy()
 
-        if domain_data:
-            # Merge headers, prioritizing user-provided ones
-            merged_headers = {**domain_data.headers, **(headers or {})}
-            # Remove excluded headers
-            request_kwargs["headers"] = {
-                k: v for k, v in merged_headers.items() if k.lower() not in self.EXCLUDED_HEADERS
-            }
+        # If headers or cookies are provided, use them directly
+        if headers is not None:
+            request_kwargs["headers"] = headers
+        if cookies is not None:
+            request_kwargs["cookies"] = cookies
 
-            # Merge cookies, prioritizing user-provided ones
-            request_kwargs["cookies"] = {**domain_data.cookies, **(cookies or {})}
+        # Only use stored credentials if no headers/cookies provided
+        if headers is None or cookies is None:
+            domain_data = self._load_domain_data(url)
+            if domain_data:
+                # Get path from URL
+                path = urlparse(url).path or "/"
+
+                # Get credentials with inheritance
+                stored_headers, stored_cookies = domain_data.get_credentials_for_path(
+                    path)
+
+                if headers is None:
+                    # Merge headers, prioritizing user-provided ones
+                    merged_headers = {**stored_headers, **(headers or {})}
+                    # Remove excluded headers
+                    request_kwargs["headers"] = {
+                        k: v for k, v in merged_headers.items() if k.lower() not in self.EXCLUDED_HEADERS
+                    }
+
+                if cookies is None:
+                    # Merge cookies, prioritizing user-provided ones
+                    request_kwargs["cookies"] = {
+                        **stored_cookies, **(cookies or {})}
 
         return request_kwargs
 
