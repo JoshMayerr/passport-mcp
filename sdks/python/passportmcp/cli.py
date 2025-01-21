@@ -166,10 +166,9 @@ def setup(local: bool, extension_id: Optional[str]):
 
         # Install native host from shared directory
         click.echo("\n📦 Installing native messaging host...")
-        shared_dir = Path(__file__).parent.parent.parent.parent / \
-            "shared" / "native-host"
+        shared_dir = Path(__file__).parent
         if not (shared_dir / "native_host.py").exists():
-            raise RuntimeError("Native host not found in shared directory")
+            raise RuntimeError("Native host not found in package directory")
         native_host_path = manager.install_native_host(shared_dir)
         click.echo(f"Installed to {native_host_path}")
 
