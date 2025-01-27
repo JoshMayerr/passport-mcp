@@ -2,6 +2,8 @@
 
 PassportMCP (ppmcp) lets you build MCP servers for any given website with automatic browser auth syncing. Every website is fair game. It wraps FastMCP and automatically adds necessary auth headers and cookies from the browser to outbound requests. As long as you log in through the browser, it's ready to be used. Often easier than paying for developer APIs (ex: twitter/X), avoiding rate limits, waiting for approval, or great for sites that don't have one.
 
+Not building an MCP server? You can use the ultra-lightweight `BrowserPassport` http client instead! [Scroll down](#browserpassport-http-client)
+
 ## Features
 
 - 🔐 Automatic browser auth syncing
@@ -127,24 +129,47 @@ async def search_linkedin(query: str):
     return response.json()
 ```
 
-## Troubleshooting
+## BrowserPassport HTTP Client
 
-1. **Extension Not Working**
+For simpler use cases where you don't need MCP tools, use the lightweight `BrowserPassport` HTTP client directly:
 
-   - Check if "Monitor Requests" is enabled
-   - Run `ppmcp doctor` to verify installation
-   - Make sure you're logged into the target website
+```python
+from passportmcp import BrowserPassport
 
-2. **Authentication Errors**
+# Initialize the client
+client = BrowserPassport()
 
-   - Visit the website in Chrome and log in again
-   - Check if cookies are being properly synced
-   - Run `ppmcp uninstall` and then `ppmcp setup` to reset
+# Make authenticated requests
+response = client.get("https://api.example.com/data")
+data = response.json()
+```
 
-3. **Native Host Issues**
-   - Check Chrome's extension logs for errors
-   - Verify the manifest is correctly installed
-   - Try rebuilding and reloading the extension
+### Features
+
+- 🔄 Automatic credential injection from browser
+- 🌳 Path-based credential inheritance
+- 🛠️ Full HTTP method support (GET, POST, PUT, DELETE)
+- 🔒 Local credential storage
+- 🚀 Built on `httpx` for modern HTTP features
+
+### Advanced Usage
+
+```python
+# Custom configuration
+client = BrowserPassport(
+    storage_path="~/custom/path/creds.json",
+    timeout=60.0,
+    verify=True  # SSL verification
+)
+
+# Custom headers/cookies (override stored ones)
+response = client.post(
+    "https://api.example.com/data",
+    headers={"Custom-Header": "value"},
+    cookies={"custom_cookie": "value"},
+    json={"key": "value"}
+)
+```
 
 ## Security
 

@@ -25,7 +25,7 @@ class SetupManager:
 
     NATIVE_HOST_NAME = "com.browserpassport.native_messaging_host"
     # We'll replace this with actual ID after Chrome Web Store publication
-    CHROME_STORE_ID = "alkipahekcclcplmedmifnbeonknmhoh"
+    CHROME_STORE_ID = "mkdikomgpomimbehlammhmgdgigegpon"
 
     def __init__(self, extension_id: Optional[str] = None):
         self.paths = self._get_platform_paths()
